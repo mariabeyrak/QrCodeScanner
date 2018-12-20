@@ -6,12 +6,10 @@ import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import android.widget.Toast
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.noisyminer.qrscanner.camera.QrScannerLayout
-import com.noisyminer.qrscanner.camera.QrScannerTextListener
+import com.noisyminer.qrscanner.QrScannerTextListener
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {

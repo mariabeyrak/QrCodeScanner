@@ -117,17 +117,9 @@ public class CameraSourcePreview extends ViewGroup {
                 width = size.getWidth();
                 height = size.getHeight();
             } else {
-                height = mCameraSource.getPreviewWidth();
-                width = mCameraSource.getPreviewHeight();
+                height = mCameraSource.getPreviewHeight();
+                width = mCameraSource.getPreviewWidth();
             }
-        }
-
-        // Swap width and height sizes when in portrait, since it will be rotated 90 degrees
-        if (isPortraitMode()) {
-            int tmp = width;
-            //noinspection SuspiciousNameCombination
-            width = height;
-            height = tmp;
         }
 
         final int layoutWidth = right - left;
@@ -144,7 +136,7 @@ public class CameraSourcePreview extends ViewGroup {
         }
 
         for (int i = 0; i < getChildCount(); ++i) {
-            getChildAt(i).layout(0, 0, childWidth, childHeight);
+            getChildAt(i).layout(0, 0, width, height);
         }
 
         try {
@@ -154,18 +146,5 @@ public class CameraSourcePreview extends ViewGroup {
         } catch (IOException e) {
             Log.e(TAG, "Could not start camera source.", e);
         }
-    }
-
-    private boolean isPortraitMode() {
-        int orientation = mContext.getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            return false;
-        }
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            return true;
-        }
-
-        Log.d(TAG, "isPortraitMode returning false by default");
-        return false;
     }
 }

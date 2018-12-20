@@ -33,10 +33,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        scanner.pause()
+        scanner.destroy()
+    }
+
     @RequiresPermission(Manifest.permission.CAMERA)
     override fun onResume() {
         super.onResume()
-        scanner?.startCameraSource()
+        scanner?.createCameraSource(applicationContext, DISPLAY_WIDTH, DISPLAY_HEIGHT)
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)

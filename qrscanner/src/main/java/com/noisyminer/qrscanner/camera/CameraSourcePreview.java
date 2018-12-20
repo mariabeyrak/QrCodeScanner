@@ -24,6 +24,7 @@ import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.ViewGroup;
 
+import android.widget.FrameLayout;
 import androidx.annotation.RequiresPermission;
 import com.google.android.gms.common.images.Size;
 
@@ -46,6 +47,7 @@ public class CameraSourcePreview extends ViewGroup {
 
         mSurfaceView = new SurfaceView(context);
         mSurfaceView.getHolder().addCallback(new SurfaceCallback());
+
         addView(mSurfaceView);
     }
 
@@ -109,8 +111,8 @@ public class CameraSourcePreview extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int width = 50;
-        int height = 50;
+        int width = getWidth();
+        int height = getHeight();
         if (mCameraSource != null) {
             Size size = mCameraSource.getPreviewSize();
             if (size != null) {

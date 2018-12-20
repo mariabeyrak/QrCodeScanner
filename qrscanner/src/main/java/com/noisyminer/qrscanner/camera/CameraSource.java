@@ -449,12 +449,10 @@ public class CameraSource {
         Camera.Parameters parameters = camera.getParameters();
 
         if (pictureSize != null) {
-            Log.d("mytg", "PICTURE " + pictureSize.getWidth() + " " + pictureSize.getHeight());
             parameters.setPictureSize(pictureSize.getWidth(), pictureSize.getHeight());
         }
 
         parameters.setPreviewSize(mPreviewSize.getWidth(), mPreviewSize.getHeight());
-        Log.d("mytg", "PREIVEW " + mPreviewSize.getWidth() + " " + mPreviewSize.getHeight());
         parameters.setPreviewFpsRange(
                 previewFpsRange[Camera.Parameters.PREVIEW_FPS_MIN_INDEX],
                 previewFpsRange[Camera.Parameters.PREVIEW_FPS_MAX_INDEX]);

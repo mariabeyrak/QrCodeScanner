@@ -1,9 +1,13 @@
 package com.noisyminer.qrscanner
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.util.AttributeSet
 import android.hardware.Camera
+import android.os.Handler
+import android.util.Log
 import android.widget.FrameLayout
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.vision.barcode.BarcodeDetector
@@ -23,6 +27,8 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 
     var callback: QrScannerTextListener? = null
 
+    var lastText = ""
+
     init {
         addView(preview)
         addView(dimView)
@@ -31,15 +37,19 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     @RequiresPermission(Manifest.permission.CAMERA)
     fun createCameraSource(applicationContext: Context, w: Int, h: Int) {
 
-        val barcodeDetector = BarcodeDetector.Builder(context).build()
+        val barcodeDetector = BarcodeDetector.Builder(context)
+                .setBarcodeFormats(Barcode.QR_CODE)
+                .build()
 
         barcodeDetector.setProcessor(object : Detector.Processor<Barcode> {
             override fun release() {}
 
             override fun receiveDetections(detections: Detector.Detections<Barcode>?) {
-                val arr = detections?.detectedItems ?: return
-                for (i in 0 until arr.size())
-                    onProcess(arr.valueAt(i).rawValue ?: continue)
+                Handler(context.mainLooper).post {
+                    val arr = detections?.detectedItems ?: return@post
+                    for (i in 0 until arr.size())
+                        onProcess(arr.valueAt(i).rawValue ?: continue)
+                }
             }
         })
 
@@ -66,6 +76,8 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     }
 
     private fun onProcess(raw: String) {
+        if (raw == lastText) return
+        lastText = raw
         callback?.onText(raw)
         dimView.collapse()
     }

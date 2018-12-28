@@ -4,6 +4,7 @@ import android.Manifest
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
+import android.content.res.Resources
 import android.util.AttributeSet
 import android.hardware.Camera
 import android.os.Handler
@@ -20,6 +21,9 @@ import java.io.IOException
 
 class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrSet, defStyleAttr) {
 
+    val DISPLAY_WIDTH: Int = Resources.getSystem().displayMetrics.widthPixels
+    val DISPLAY_HEIGHT: Int = Resources.getSystem().displayMetrics.heightPixels
+
     var cameraSource: CameraSource? = null
 
     val preview = CameraSourcePreview(context, attrSet)
@@ -31,11 +35,11 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 
     init {
         addView(preview)
-        addView(dimView)
+        //addView(dimView)
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)
-    fun createCameraSource(applicationContext: Context, w: Int, h: Int) {
+    fun createCameraSource(applicationContext: Context) {
 
         val barcodeDetector = BarcodeDetector.Builder(context)
                 .setBarcodeFormats(Barcode.QR_CODE)
@@ -55,7 +59,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 
         cameraSource = CameraSource.Builder(applicationContext, barcodeDetector)
             .setFacing(CameraSource.CAMERA_FACING_BACK)
-            .setRequestedPreviewSize(w, h)
+            .setRequestedPreviewSize(DISPLAY_WIDTH, DISPLAY_HEIGHT)
             .setRequestedFps(32.0f)
             .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
             .build()

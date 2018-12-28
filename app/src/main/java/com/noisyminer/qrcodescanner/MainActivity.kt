@@ -1,6 +1,7 @@
 package com.noisyminer.qrcodescanner
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.pm.PackageManager
 import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
@@ -14,44 +15,55 @@ import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
 
-    val DISPLAY_WIDTH: Int = Resources.getSystem().displayMetrics.widthPixels
-    val DISPLAY_HEIGHT: Int = Resources.getSystem().displayMetrics.heightPixels
+    var start = false
+    var hasPerm = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
-        } else scanner.createCameraSource(applicationContext, DISPLAY_WIDTH, DISPLAY_HEIGHT)
-
-        scanner.callback = object : QrScannerTextListener {
-            override fun onText(raw: String) {
-                Log.d("mytg", raw)
+        scanner.apply {
+            viewTreeObserver.addOnGlobalLayoutListener {
+                hasPerm = true
+                tryToStart()
+            }
+            callback = object : QrScannerTextListener {
+                override fun onText(raw: String) {
+                    Log.d("mytg", raw)
+                }
             }
         }
     }
 
     override fun onPause() {
         super.onPause()
+        start = false
         scanner.pause()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
         scanner.destroy()
     }
 
-    @RequiresPermission(Manifest.permission.CAMERA)
-    override fun onResume() {
-        super.onResume()
-        scanner?.createCameraSource(applicationContext, DISPLAY_WIDTH, DISPLAY_HEIGHT)
+    private fun tryToStart() {
+        if (!hasPerm || !start) return
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
+        } else {
+            if (scanner.cameraSource == null) scanner.createCameraSource(applicationContext)
+            scanner.startCameraSource()
+        }
     }
 
-    @RequiresPermission(Manifest.permission.CAMERA)
+    override fun onResume() {
+        super.onResume()
+        start = true
+        tryToStart()
+    }
+
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        permissions.indexOfFirst { it == Manifest.permission.CAMERA }.also {
-            if (grantResults[it] == PackageManager.PERMISSION_GRANTED) {
-                scanner.createCameraSource(applicationContext, DISPLAY_WIDTH, DISPLAY_HEIGHT)
-            }
-        }
+        tryToStart()
     }
 }

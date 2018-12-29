@@ -26,6 +26,7 @@ import android.hardware.Camera.CameraInfo;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
+import android.util.Pair;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -43,10 +44,7 @@ import java.lang.Thread.State;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 // Note: This requires Google Play Services 8.1 or higher, due to using indirect byte buffers for
 // storing images.
@@ -101,7 +99,8 @@ public class CameraSource {
             Camera.Parameters.FOCUS_MODE_MACRO
     })
     @Retention(RetentionPolicy.SOURCE)
-    private @interface FocusMode {}
+    private @interface FocusMode {
+    }
 
     @StringDef({
             Camera.Parameters.FLASH_MODE_ON,
@@ -111,14 +110,15 @@ public class CameraSource {
             Camera.Parameters.FLASH_MODE_TORCH
     })
     @Retention(RetentionPolicy.SOURCE)
-    private @interface FlashMode {}
+    private @interface FlashMode {
+    }
 
     private Context mContext;
 
     private final Object mCameraLock = new Object();
 
     // Guarded by mCameraLock
-    private Camera mCamera;
+    public Camera mCamera;
 
     private int mFacing = CAMERA_FACING_BACK;
 
@@ -844,27 +844,80 @@ public class CameraSource {
      * @param desiredHeight the desired height of the camera preview frames
      * @return the selected preview and picture size pair
      */
-    private static SizePair selectSizePair(Camera camera, int desiredWidth, int desiredHeight) {
-        List<SizePair> validPreviewSizes = generateValidPreviewSizeList(camera);
+    public static SizePair selectSizePair(Camera camera, int desiredWidth, int desiredHeight) {
+        Camera.Size preview = getOptimalPreviewSize(camera, desiredWidth, desiredHeight);
+        if (preview == null) return null;
+        Camera.Size picture = getOptimalPictureSize(camera, preview);
+        if (picture == null) return null;
+        return new SizePair(preview, picture);
+    }
 
-        // The method for selecting the best size is to minimize the sum of the differences between
-        // the desired values and the actual values for width and height.  This is certainly not the
-        // only way to select the best size, but it provides a decent tradeoff between using the
-        // closest aspect ratio vs. using the closest pixel area.
-        SizePair selectedPair = null;
-        int minDiff = Integer.MAX_VALUE;
-        for (SizePair sizePair : validPreviewSizes) {
-            Size size = sizePair.previewSize();
-            int diff = Math.abs(size.getWidth() - desiredWidth) +
-                    Math.abs(size.getHeight() - desiredHeight);
-            if (diff < minDiff) {
-                selectedPair = sizePair;
-                minDiff = diff;
+    static Camera.Size getOptimalPreviewSize(Camera camera, int w, int h) {
+        double ASPECT_TOLERANCE = 0.2;
+        double targetRatio = (double) h / w;
+
+        Camera.Size optimalSize = null;
+        double minDiff = Double.MAX_VALUE;
+
+        List<Camera.Size> supportedPreviewSizes = camera.getParameters().getSupportedPreviewSizes();
+        List<Camera.Size> supportedPictureSizes = camera.getParameters().getSupportedPictureSizes();
+        List<Float> pictureRatios = new LinkedList<>();
+        for (Camera.Size size : supportedPictureSizes)
+            pictureRatios.add((size.height >= size.width) ? (float)size.height / size.width : (float)size.width / size.height);
+
+        for (Camera.Size size : supportedPreviewSizes) {
+            float ratio = (size.height >= size.width) ? (float) size.height / size.width : (float) size.width / size.height;
+
+            if (Math.abs(ratio - targetRatio) > ASPECT_TOLERANCE) continue;
+
+            if (Math.abs(size.width - h) < minDiff && size.width != size.height) {
+                optimalSize = size;
+                minDiff = Math.abs(size.width - h);
+            }
+
+        }
+
+        if (optimalSize == null) {
+            minDiff = Double.MAX_VALUE;
+            for (Camera.Size size : supportedPreviewSizes) {
+                float ratio = (size.height >= size.width) ? (float) size.height / size.width : (float) size.width / size.height;
+
+                if (Math.abs(size.width - h) < minDiff && ifRatioExists(pictureRatios, ratio)) {
+                    optimalSize = size;
+                    minDiff = Math.abs(size.width - h);
+                }
             }
         }
 
-        return selectedPair;
+        return optimalSize;
     }
+
+    private static Camera.Size getOptimalPictureSize(Camera camera, Camera.Size previewSize) {
+        Camera.Size pictureSize = null;
+        int minDiff = Integer.MIN_VALUE;
+        List<Camera.Size> supportedPictureSizes = camera.getParameters().getSupportedPictureSizes();
+        for (Camera.Size size : supportedPictureSizes) {
+            if ((float)size.width / size.height == (float)previewSize.width / previewSize.height && minDiff < size.width) {
+                pictureSize = size;
+                minDiff = size.width;
+            }
+        }
+
+        if (pictureSize == null && !supportedPictureSizes.isEmpty()) {
+            pictureSize = supportedPictureSizes.get(0);
+        }
+
+        return pictureSize;
+    }
+
+    //we need to check if pic size exists for chosen preview size
+    private static boolean ifRatioExists(List<Float> ratios, float ratio) {
+        for (Float r : ratios) {
+            if (Math.abs(ratio - r) < 1e-6) return true;
+        }
+        return false;
+    }
+
 
     /**
      * Stores a preview size and a corresponding same-aspect-ratio picture size.  To avoid distorted
@@ -872,7 +925,7 @@ public class CameraSource {
      * aspect ratio as the preview size or the preview may end up being distorted.  If the picture
      * size is null, then there is no picture size with the same aspect ratio as the preview size.
      */
-    private static class SizePair {
+    static class SizePair {
         private Size mPreview;
         private Size mPicture;
 
@@ -895,55 +948,6 @@ public class CameraSource {
     }
 
     /**
-     * Generates a list of acceptable preview sizes.  Preview sizes are not acceptable if there is
-     * not a corresponding picture size of the same aspect ratio.  If there is a corresponding
-     * picture size of the same aspect ratio, the picture size is paired up with the preview size.
-     * <p/>
-     * This is necessary because even if we don't use still pictures, the still picture size must be
-     * set to a size that is the same aspect ratio as the preview size we choose.  Otherwise, the
-     * preview images may be distorted on some devices.
-     */
-    private static List<SizePair> generateValidPreviewSizeList(Camera camera) {
-        Camera.Parameters parameters = camera.getParameters();
-        List<android.hardware.Camera.Size> supportedPreviewSizes =
-                parameters.getSupportedPreviewSizes();
-        List<android.hardware.Camera.Size> supportedPictureSizes =
-                parameters.getSupportedPictureSizes();
-        List<SizePair> validPreviewSizes = new ArrayList<>();
-        for (android.hardware.Camera.Size previewSize : supportedPreviewSizes) {
-            float previewAspectRatio = (float) previewSize.width / (float) previewSize.height;
-
-            // By looping through the picture sizes in order, we favor the higher resolutions.
-            // We choose the highest resolution in order to support taking the full resolution
-            // picture later.
-            Float bestDist = Float.POSITIVE_INFINITY;
-            SizePair best = null;
-            for (android.hardware.Camera.Size pictureSize : supportedPictureSizes) {
-                float pictureAspectRatio = (float) pictureSize.width / (float) pictureSize.height;
-                Float dist = Math.abs(previewAspectRatio - pictureAspectRatio);
-                if (dist < bestDist) {
-                    best = new SizePair(previewSize, pictureSize);
-                    bestDist = dist;
-                }
-            }
-            validPreviewSizes.add(best);
-        }
-
-        // If there are no picture sizes with the same aspect ratio as any preview sizes, allow all
-        // of the preview sizes and hope that the camera can handle it.  Probably unlikely, but we
-        // still account for it.
-        if (validPreviewSizes.size() == 0) {
-            Log.w(TAG, "No preview sizes have a corresponding same-aspect-ratio picture size");
-            for (android.hardware.Camera.Size previewSize : supportedPreviewSizes) {
-                // The null picture size will let us know that we shouldn't set a picture size.
-                validPreviewSizes.add(new SizePair(previewSize, null));
-            }
-        }
-
-        return validPreviewSizes;
-    }
-
-    /**
      * Selects the most suitable preview frames per second range, given the desired frames per
      * second.
      *
@@ -951,7 +955,7 @@ public class CameraSource {
      * @param desiredPreviewFps the desired frames per second for the camera preview frames
      * @return the selected preview frames per second range
      */
-    private int[] selectPreviewFpsRange(Camera camera, float desiredPreviewFps) {
+    public int[] selectPreviewFpsRange(Camera camera, float desiredPreviewFps) {
         // The camera API uses integers scaled by a factor of 1000 instead of floating-point frame
         // rates.
         int desiredPreviewFpsScaled = (int) (desiredPreviewFps * 1000.0f);

@@ -18,6 +18,7 @@ package com.noisyminer.qrscanner.camera;
 import android.Manifest;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.hardware.Camera;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -29,11 +30,10 @@ import com.google.android.gms.common.images.Size;
 
 import java.io.IOException;
 
-public class CameraSourcePreview extends ViewGroup {
+public class CameraSourcePreview extends SurfaceView {
     private static final String TAG = "CameraSourcePreview";
 
     private Context mContext;
-    private SurfaceView mSurfaceView;
     private boolean mStartRequested;
     private boolean mSurfaceAvailable;
     private CameraSource mCameraSource;
@@ -44,42 +44,53 @@ public class CameraSourcePreview extends ViewGroup {
         mStartRequested = false;
         mSurfaceAvailable = false;
 
-        mSurfaceView = new SurfaceView(context);
-        mSurfaceView.getHolder().addCallback(new SurfaceCallback());
-        addView(mSurfaceView);
+        getHolder().addCallback(new SurfaceCallback());
+        getHolder().setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)
-    public void start(CameraSource cameraSource) throws IOException, SecurityException {
-        if (cameraSource == null) {
-            stop();
-        }
+    public void start(CameraSource cameraSource) {
+        try {
+            if (cameraSource == null) {
+                stop();
+            }
 
-        mCameraSource = cameraSource;
+            mCameraSource = cameraSource;
 
-        if (mCameraSource != null) {
-            mStartRequested = true;
-            startIfReady();
+            if (mCameraSource != null) {
+                mStartRequested = true;
+                startIfReady();
+            }
+        } catch (Exception e) {
+            Log.d(getClass().getSimpleName(), "onStart : " + e);
         }
     }
 
     public void stop() {
-        if (mCameraSource != null) {
-            mCameraSource.stop();
+        try {
+            if (mCameraSource != null) {
+                mCameraSource.stop();
+            }
+        } catch (Exception e) {
+            Log.d(getClass().getSimpleName(), "onStop : " + e);
         }
     }
 
     public void release() {
-        if (mCameraSource != null) {
-            mCameraSource.release();
-            mCameraSource = null;
+        try {
+            if (mCameraSource != null) {
+                mCameraSource.release();
+                mCameraSource = null;
+            }
+        } catch (Exception e) {
+            Log.d(getClass().getSimpleName(), "onRelease : " + e);
         }
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)
     private void startIfReady() throws IOException, SecurityException {
         if (mStartRequested && mSurfaceAvailable) {
-            mCameraSource.start(mSurfaceView.getHolder());
+            mCameraSource.start(getHolder());
             mStartRequested = false;
         }
     }
@@ -108,61 +119,43 @@ public class CameraSourcePreview extends ViewGroup {
     }
 
     @Override
-    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        int width = 320;
-        int height = 240;
-        if (mCameraSource != null) {
-            Size size = mCameraSource.getPreviewSize();
-            if (size != null) {
-                width = size.getWidth();
-                height = size.getHeight();
-            }
-        }
-
-        // Swap width and height sizes when in portrait, since it will be rotated 90 degrees
-        if (isPortraitMode()) {
-            int tmp = width;
-            //noinspection SuspiciousNameCombination
-            width = height;
-            height = tmp;
-        }
-
-        final int layoutWidth = right - left;
-        final int layoutHeight = bottom - top;
-
-        // Computes height and width for potentially doing fit width.
-        int childWidth = layoutWidth;
-        int childHeight = (int)(((float) layoutWidth / (float) width) * height);
-
-        // If height is too tall using fit width, does fit height instead.
-        if (childHeight > layoutHeight) {
-            childHeight = layoutHeight;
-            childWidth = (int)(((float) layoutHeight / (float) height) * width);
-        }
-
-        for (int i = 0; i < getChildCount(); ++i) {
-            getChildAt(i).layout(0, 0, childWidth, childHeight);
-        }
-
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
         try {
-            startIfReady();
-        } catch (SecurityException se) {
-            Log.e(TAG,"Do not have permission to start the camera", se);
-        } catch (IOException e) {
-            Log.e(TAG, "Could not start camera source.", e);
-        }
-    }
+            int width = resolveSize(getSuggestedMinimumWidth(), widthMeasureSpec);
+            int height = resolveSize(getSuggestedMinimumHeight(), heightMeasureSpec);
 
-    private boolean isPortraitMode() {
-        int orientation = mContext.getResources().getConfiguration().orientation;
-        if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            return false;
-        }
-        if (orientation == Configuration.ORIENTATION_PORTRAIT) {
-            return true;
-        }
+            if (mCameraSource == null) return;
+            if (mCameraSource.mCamera == null) return;
 
-        Log.d(TAG, "isPortraitMode returning false by default");
-        return false;
+            CameraSource.SizePair size = CameraSource.selectSizePair(mCameraSource.mCamera, width, height);
+            Size p = size.previewSize();
+
+
+            if (p.getWidth() >= height && p.getHeight() >= width) {
+                setMeasuredDimension(p.getHeight(), p.getWidth());
+                return;
+            }
+
+            float ratio = (p.getHeight() >= p.getWidth()) ? (float) p.getHeight() / p.getWidth() : (float) p.getWidth() / p.getHeight();
+
+            float camHeight = width * ratio;
+            float newCamHeight = camHeight;
+            float newHeightRatio = 1f;
+            float newWidth = (float) width;
+
+            if (camHeight < height) {
+                while (newCamHeight < height) {
+                    newHeightRatio = (float) height / p.getWidth();
+                    newCamHeight *= newHeightRatio;
+                    newWidth *= newHeightRatio;
+                }
+                setMeasuredDimension((int) newWidth, (int) newCamHeight);
+            } else {
+                setMeasuredDimension(width, (int) newCamHeight);
+            }
+        } catch (Exception e) {
+            Log.d(getClass().getSimpleName(), "onMeasure : " + e);
+        }
     }
 }

@@ -31,6 +31,10 @@ class MainActivity : AppCompatActivity() {
                 override fun onText(raw: String) {
                     Log.d("mytg", raw)
                 }
+
+                override fun onError() {
+
+                }
             }
         }
     }

@@ -35,7 +35,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 
     init {
         addView(preview)
-        //addView(dimView)
+        addView(dimView)
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)
@@ -99,4 +99,6 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 interface QrScannerTextListener {
 
     fun onText(raw: String)
+
+    fun onError()
 }

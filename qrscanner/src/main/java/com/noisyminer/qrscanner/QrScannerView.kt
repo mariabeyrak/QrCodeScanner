@@ -86,6 +86,11 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         dimView.collapse()
     }
 
+    fun processed() {
+        lastText = "&^"
+        dimView.expand()
+    }
+
     fun pause() {
         preview.stop()
     }

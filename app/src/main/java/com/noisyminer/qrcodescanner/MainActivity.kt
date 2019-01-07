@@ -23,6 +23,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         scanner.apply {
+            setOnClickListener {
+                scanner.processed()
+            }
             viewTreeObserver.addOnGlobalLayoutListener {
                 hasPerm = true
                 tryToStart()

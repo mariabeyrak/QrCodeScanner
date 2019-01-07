@@ -69,6 +69,43 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         }
     }
 
+    fun expand() {
+        if (outState) return
+        animator = ValueAnimator.ofFloat(0F, dimens / 2).apply {
+            addUpdateListener {
+                (it.animatedValue as? Float)?.let {
+                    radius = it
+                    invalidate()
+                }
+            }
+            interpolator = LinearInterpolator()
+            duration = ANIM_DURATION
+            addListener(object : Animator.AnimatorListener {
+                override fun onAnimationRepeat(animation: Animator?) {}
+
+                override fun onAnimationEnd(animation: Animator?) {
+                    outState = true
+                    animator = ValueAnimator.ofFloat(dimens / 2, RECT_ROUND).apply {
+                        addUpdateListener {
+                            (it.animatedValue as? Float)?.let {
+                                radius = it
+                                invalidate()
+                            }
+                        }
+                        duration = ANIM_DURATION_OUTER
+                        interpolator = LinearInterpolator()
+                        start()
+                    }
+                }
+
+                override fun onAnimationCancel(animation: Animator?) {}
+
+                override fun onAnimationStart(animation: Animator?) {}
+            })
+            start()
+        }
+    }
+
     override fun onDetachedFromWindow() {
         super.onDetachedFromWindow()
         animator?.cancel()

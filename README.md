@@ -19,8 +19,8 @@ allprojects {
 
 ```groovy
 // Scanner (view)
-implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrscanner:$scanner_version"
+implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrscanner:1.2.2"
 
 // Bitmap generator
-implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrgenerator:$scanner_version"
+implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrgenerator:1.2.2"
 ```

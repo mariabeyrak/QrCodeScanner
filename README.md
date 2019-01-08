@@ -18,9 +18,11 @@ allprojects {
 2. App level
 
 ```groovy
-// Scanner (view)
-implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrscanner:1.2.2"
-
-// Bitmap generator
-implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrgenerator:1.2.2"
+dependencies {
+    // Scanner (view)
+    implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrscanner:1.2.2"
+    
+    // Bitmap generator
+    implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrgenerator:1.2.2"
+}
 ```

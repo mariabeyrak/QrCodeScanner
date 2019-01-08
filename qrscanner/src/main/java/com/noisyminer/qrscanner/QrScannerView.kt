@@ -21,17 +21,17 @@ import java.io.IOException
 
 class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrSet, defStyleAttr) {
 
-    val DISPLAY_WIDTH: Int = Resources.getSystem().displayMetrics.widthPixels
-    val DISPLAY_HEIGHT: Int = Resources.getSystem().displayMetrics.heightPixels
+    private val DISPLAY_WIDTH: Int = Resources.getSystem().displayMetrics.widthPixels
+    private val DISPLAY_HEIGHT: Int = Resources.getSystem().displayMetrics.heightPixels
 
-    var cameraSource: CameraSource? = null
+    private var cameraSource: CameraSource? = null
 
-    val preview = CameraSourcePreview(context, attrSet)
-    val dimView = DimView(context)
+    private val preview = CameraSourcePreview(context, attrSet)
+    private val dimView = DimView(context)
 
-    var callback: QrScannerTextListener? = null
+    private var callback: QrScannerTextListener? = null
 
-    var lastText = ""
+    private var lastText = ""
 
     init {
         addView(preview)
@@ -86,8 +86,12 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         dimView.collapse()
     }
 
+    fun setOnCollapseCallback(callback: () -> Unit) {
+        if (dimView.collapsed) callback()
+        dimView.onCollapseCallback = if (dimView.collapsed) null else callback
+    }
+
     fun processed() {
-        lastText = "&^"
         dimView.expand()
     }
 
@@ -104,6 +108,4 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 interface QrScannerTextListener {
 
     fun onText(raw: String)
-
-    fun onError()
 }

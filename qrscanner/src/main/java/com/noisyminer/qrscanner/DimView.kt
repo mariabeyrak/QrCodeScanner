@@ -19,21 +19,26 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         const val DEFAULT_ALPHA = 0.55F
     }
 
-    var radius = RECT_ROUND
-    var dimens = 0F
-    var heightPadding = 0F
-    var widthPadding = 0F
-    var outState = true
+    private var radius = RECT_ROUND
+    private var dimens = 0F
+    private var heightPadding = 0F
+    private var widthPadding = 0F
+    private var outState = true
+    private var animator: Animator? = null
 
-    var animator: Animator? = null
+    var collapsed = false
 
-    val paint: Paint = Paint().apply {
+    var onCollapseCallback: (() -> Unit)? = null
+
+    private val paint: Paint = Paint().apply {
         color = Color.WHITE
         setAlpha(DEFAULT_ALPHA)
         isAntiAlias = true
     }
 
     fun collapse() {
+        if (!outState) return
+        animator?.cancel()
         animator = ValueAnimator.ofFloat(RECT_ROUND, dimens / 2).apply {
             addUpdateListener {
                 (it.animatedValue as? Float)?.let {
@@ -57,6 +62,19 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
                         }
                         interpolator = LinearInterpolator()
                         duration = ANIM_DURATION
+                        addListener(object : Animator.AnimatorListener {
+                            override fun onAnimationRepeat(animation: Animator?) {}
+
+                            override fun onAnimationEnd(animation: Animator?) {
+                                collapsed = true
+                                onCollapseCallback?.invoke()
+                                onCollapseCallback = null
+                            }
+
+                            override fun onAnimationCancel(animation: Animator?) {}
+
+                            override fun onAnimationStart(animation: Animator?) {}
+                        })
                         start()
                     }
                 }
@@ -71,6 +89,8 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
     fun expand() {
         if (outState) return
+        animator?.cancel()
+        collapsed = false
         animator = ValueAnimator.ofFloat(0F, dimens / 2).apply {
             addUpdateListener {
                 (it.animatedValue as? Float)?.let {
@@ -110,6 +130,7 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         super.onDetachedFromWindow()
         animator?.cancel()
         animator = null
+        onCollapseCallback = null
     }
 
     override fun onDraw(canvas: Canvas?) {

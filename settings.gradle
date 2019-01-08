@@ -1,1 +1,1 @@
-include ':app', ':qrscanner'
+include ':app', ':qrscanner', ':qrgenerator'

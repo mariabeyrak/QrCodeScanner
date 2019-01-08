@@ -29,9 +29,9 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     private val preview = CameraSourcePreview(context, attrSet)
     private val dimView = DimView(context)
 
-    private var callback: QrScannerTextListener? = null
-
     private var lastText = ""
+
+    var callback: QrScannerTextListener? = null
 
     init {
         addView(preview)

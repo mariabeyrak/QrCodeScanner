@@ -26,7 +26,7 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     private var outState = true
     private var animator: Animator? = null
 
-    var collapsed = false
+    var isCollapsing = false
 
     var onCollapseCallback: (() -> Unit)? = null
 
@@ -38,6 +38,7 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
     fun collapse() {
         if (!outState) return
+        isCollapsing = true
         animator?.cancel()
         animator = ValueAnimator.ofFloat(RECT_ROUND, dimens / 2).apply {
             addUpdateListener {
@@ -66,7 +67,7 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
                             override fun onAnimationRepeat(animation: Animator?) {}
 
                             override fun onAnimationEnd(animation: Animator?) {
-                                collapsed = true
+                                isCollapsing = false
                                 onCollapseCallback?.invoke()
                                 onCollapseCallback = null
                             }
@@ -90,7 +91,6 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     fun expand() {
         if (outState) return
         animator?.cancel()
-        collapsed = false
         animator = ValueAnimator.ofFloat(0F, dimens / 2).apply {
             addUpdateListener {
                 (it.animatedValue as? Float)?.let {

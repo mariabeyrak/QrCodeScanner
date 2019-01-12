@@ -87,8 +87,8 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     }
 
     fun setOnCollapseCallback(callback: () -> Unit) {
-        if (dimView.collapsed) callback()
-        dimView.onCollapseCallback = if (dimView.collapsed) null else callback
+        if (!dimView.isCollapsing) callback()
+        dimView.onCollapseCallback = if (!dimView.isCollapsing) null else callback
     }
 
     fun processed() {

@@ -32,6 +32,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     private var lastText = ""
 
     var callback: QrScannerTextListener? = null
+    var processing = false
 
     init {
         addView(preview)
@@ -80,7 +81,8 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     }
 
     private fun onProcess(raw: String) {
-        if (raw == lastText) return
+        if (raw == lastText || processing) return
+        processing = true
         lastText = raw
         callback?.onText(raw)
         dimView.collapse()
@@ -93,6 +95,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
 
     fun processed() {
         setOnCollapseCallback {
+            processing = false
             dimView.expand()
         }
     }

@@ -1,11 +1,10 @@
-package com.noisyminer.qrscanner
+package com.noisyminer.qrscanner.shooter
 
 import android.animation.Animator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.view.View
 import android.view.animation.LinearInterpolator
 import kotlin.math.min
 
@@ -24,7 +23,6 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
     private var heightPadding = 0F
     private var widthPadding = 0F
     private var outState = true
-    private var animator: Animator? = null
 
     private val paint: Paint = Paint().apply {
         color = Color.WHITE
@@ -101,7 +99,9 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
 
                 override fun onAnimationEnd(animation: Animator?) {
                     outState = true
-                    animator = ValueAnimator.ofFloat(dimens / 2, RECT_ROUND).apply {
+                    animator = ValueAnimator.ofFloat(dimens / 2,
+                        RECT_ROUND
+                    ).apply {
                         addUpdateListener {
                             (it.animatedValue as? Float)?.let {
                                 radius = it
@@ -120,13 +120,6 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
             })
             start()
         }
-    }
-
-    override fun onDetachedFromWindow() {
-        super.onDetachedFromWindow()
-        animator?.cancel()
-        animator = null
-        onCollapseCallback = null
     }
 
     override fun onDraw(canvas: Canvas?) {

@@ -6,7 +6,6 @@ import android.content.res.Resources
 import android.util.AttributeSet
 import android.hardware.Camera
 import android.os.Handler
-import android.util.Log
 import android.widget.FrameLayout
 import androidx.annotation.RequiresPermission
 import com.google.android.gms.vision.Detector
@@ -16,6 +15,7 @@ import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.barcode.Barcode
 import com.noisyminer.qrscanner.camera.CameraSource
 import com.noisyminer.qrscanner.camera.CameraSourcePreview
+import com.noisyminer.qrscanner.shooter.ShooterView
 import java.io.IOException
 
 

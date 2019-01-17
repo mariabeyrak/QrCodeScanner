@@ -1,17 +1,15 @@
 package com.noisyminer.qrcodescanner
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.noisyminer.qrscanner.DimView
+import com.noisyminer.qrscanner.shooter.RoundedRectShooter
 import com.noisyminer.qrscanner.QrScannerTextListener
+import com.noisyminer.qrscanner.shooter.RectShooter
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -31,7 +29,7 @@ class MainActivity : AppCompatActivity() {
                 hasPerm = true
                 tryToStart()
             }
-            setShooter(DimView(context))
+            setShooter(RectShooter(context))
             callback = object : QrScannerTextListener {
                 override fun onText(raw: String) {
                     Log.d("mytg", raw)

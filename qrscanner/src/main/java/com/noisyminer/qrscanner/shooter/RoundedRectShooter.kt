@@ -9,7 +9,7 @@ import android.view.View
 import android.view.animation.LinearInterpolator
 import kotlin.math.min
 
-class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : View(context, attrs, defStyle) {
+class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : ShooterView(context, attrs, defStyle) {
 
     companion object {
 
@@ -26,17 +26,13 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
     private var outState = true
     private var animator: Animator? = null
 
-    var isCollapsing = false
-
-    var onCollapseCallback: (() -> Unit)? = null
-
     private val paint: Paint = Paint().apply {
         color = Color.WHITE
         setAlpha(DEFAULT_ALPHA)
         isAntiAlias = true
     }
 
-    fun collapse() {
+    override fun collapse() {
         if (!outState) return
         isCollapsing = true
         animator?.cancel()
@@ -88,7 +84,7 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
         }
     }
 
-    fun expand() {
+    override fun expand() {
         if (outState) return
         animator?.cancel()
         animator = ValueAnimator.ofFloat(0F, dimens / 2).apply {
@@ -142,8 +138,8 @@ class DimView @JvmOverloads constructor(context: Context, attrs: AttributeSet? =
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        val h = height * 0.45F
-        val w = width * 0.85F
+        val h = height * 0.4F
+        val w = width * 0.8F
         dimens = min(h, w)
         heightPadding = (height - dimens) / 2
         widthPadding = (width - dimens) / 2

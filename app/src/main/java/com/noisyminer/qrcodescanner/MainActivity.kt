@@ -10,6 +10,7 @@ import android.util.Log
 import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.noisyminer.qrscanner.DimView
 import com.noisyminer.qrscanner.QrScannerTextListener
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -30,6 +31,7 @@ class MainActivity : AppCompatActivity() {
                 hasPerm = true
                 tryToStart()
             }
+            setShooter(DimView(context))
             callback = object : QrScannerTextListener {
                 override fun onText(raw: String) {
                     Log.d("mytg", raw)
@@ -54,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
         } else {
-            if (scanner.cameraSource == null) scanner.createCameraSource(applicationContext)
+            if (!scanner.hasCameraSource()) scanner.createCameraSource(applicationContext)
             scanner.startCameraSource()
         }
     }

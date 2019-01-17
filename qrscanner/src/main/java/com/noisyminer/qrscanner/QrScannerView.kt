@@ -1,8 +1,6 @@
 package com.noisyminer.qrscanner
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.Resources
 import android.util.AttributeSet
@@ -11,8 +9,10 @@ import android.os.Handler
 import android.util.Log
 import android.widget.FrameLayout
 import androidx.annotation.RequiresPermission
-import com.google.android.gms.vision.barcode.BarcodeDetector
 import com.google.android.gms.vision.Detector
+import com.google.android.gms.vision.MultiProcessor
+import com.google.android.gms.vision.barcode.BarcodeDetector
+import com.google.android.gms.vision.Tracker
 import com.google.android.gms.vision.barcode.Barcode
 import com.noisyminer.qrscanner.camera.CameraSource
 import com.noisyminer.qrscanner.camera.CameraSourcePreview
@@ -27,16 +27,16 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     private var cameraSource: CameraSource? = null
 
     private val preview = CameraSourcePreview(context, attrSet)
-    private val dimView = DimView(context)
 
+    private var processing = false
     private var lastText = ""
 
+    private var shooterView: ShooterView? = null
+
     var callback: QrScannerTextListener? = null
-    var processing = false
 
     init {
         addView(preview)
-        addView(dimView)
     }
 
     @RequiresPermission(Manifest.permission.CAMERA)
@@ -46,22 +46,28 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
                 .setBarcodeFormats(Barcode.QR_CODE)
                 .build()
 
-        barcodeDetector.setProcessor(object : Detector.Processor<Barcode> {
-            override fun release() {}
-
-            override fun receiveDetections(detections: Detector.Detections<Barcode>?) {
-                Handler(context.mainLooper).post {
-                    val arr = detections?.detectedItems ?: return@post
-                    for (i in 0 until arr.size())
-                        onProcess(arr.valueAt(i).rawValue ?: continue)
+        barcodeDetector.setProcessor(MultiProcessor.Builder<Barcode>(MultiProcessor.Factory<Barcode> {
+            object : Tracker<Barcode>() {
+                override fun onNewItem(barcodes: Int, barcode: Barcode?) {
+                    onDetect(barcode ?: return)
                 }
+
+                override fun onMissing(barcodes: Detector.Detections<Barcode>?) {
+                    onDetect(barcodes?.detectedItems?.get(0) ?: return)
+                }
+
+                override fun onUpdate(barcodes: Detector.Detections<Barcode>?, barcode: Barcode?) {
+                    onDetect(barcode ?: barcodes?.detectedItems?.get(0) ?: return)
+                }
+
+                override fun onDone() {}
             }
-        })
+        }).build())
 
         cameraSource = CameraSource.Builder(applicationContext, barcodeDetector)
             .setFacing(CameraSource.CAMERA_FACING_BACK)
             .setRequestedPreviewSize(DISPLAY_WIDTH, DISPLAY_HEIGHT)
-            .setRequestedFps(32.0f)
+            .setRequestedFps(15.0f)
             .setFocusMode(Camera.Parameters.FOCUS_MODE_CONTINUOUS_PICTURE)
             .build()
 
@@ -80,23 +86,40 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         }
     }
 
+    private fun onDetect(barcode: Barcode) {
+        Handler(context.mainLooper).post {
+            onProcess(barcode.rawValue ?: return@post)
+        }
+    }
+
     private fun onProcess(raw: String) {
         if (raw == lastText || processing) return
         processing = true
         lastText = raw
         callback?.onText(raw)
-        dimView.collapse()
+        shooterView?.collapse()
     }
 
+    fun setShooter(shooter: ShooterView) {
+        shooterView = shooter
+        addView(shooter)
+    }
+
+    fun hasCameraSource() = cameraSource != null
+
     fun setOnCollapseCallback(callback: () -> Unit) {
-        if (!dimView.isCollapsing) callback()
-        dimView.onCollapseCallback = if (!dimView.isCollapsing) null else callback
+        shooterView?.let {
+            if (!it.isCollapsing) callback()
+            it.onCollapseCallback = if (!it.isCollapsing) null else callback
+        } ?: run {
+            callback()
+        }
     }
 
     fun processed() {
         setOnCollapseCallback {
             processing = false
-            dimView.expand()
+            shooterView?.expand()
         }
     }
 

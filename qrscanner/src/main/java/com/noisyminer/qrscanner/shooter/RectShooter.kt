@@ -5,9 +5,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import android.view.animation.DecelerateInterpolator
-import kotlin.math.max
 import kotlin.math.min
 
 class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : ShooterView(context, attrs, defStyle) {
@@ -23,6 +21,10 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
         const val DEFAULT_DURATION_COLLAPSE = 200L
         const val DEFAULT_DURATION_EXPAND = 400L
 
+        const val DEFAULT_DIMEN_PERCENT_OF_HEIGHT = 0.4F
+        const val DEFAULT_DIMEN_PERCENT_OF_WIDTH = 0.8F
+        const val DEFAULT_CORNER_LEN_PERCENT_OF_DIMEN = 0.2F
+
         val DEFAULT_CORNER_COLOR = Color.rgb(111, 207, 154)
     }
 
@@ -35,20 +37,35 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var bounds = RectF()
     private var collapsed = false
 
-    private val backgroundPaint: Paint = Paint().apply {
-        color = DEFAULT_BACKGROUND_COLOR
-        setAlpha(DEFAULT_ALPHA)
-    }
+    var backgrounAlpha = DEFAULT_ALPHA
+    var backgroungColor = DEFAULT_BACKGROUND_COLOR
+    var cornerStrokeWidth = DEFAULT_CORNER_STROKE_WIDTH
+    var cornerStrokeRound = DEFAULT_CORNER_STROKE_ROUND
+    var durationCollapse = DEFAULT_DURATION_COLLAPSE
+    var durationExpand = DEFAULT_DURATION_EXPAND
+    var dimenPercentOfWidth = DEFAULT_DIMEN_PERCENT_OF_WIDTH
+    var dimenPercentOfHeight = DEFAULT_DIMEN_PERCENT_OF_HEIGHT
+    var cornerLenPercentOfDimen = DEFAULT_CORNER_LEN_PERCENT_OF_DIMEN
+    var cornerColor = DEFAULT_CORNER_COLOR
 
-    private val cornerPaint: Paint = Paint().apply {
-        color = DEFAULT_CORNER_COLOR
-        strokeWidth = DEFAULT_CORNER_STROKE_WIDTH
-        isDither = false
-        style = Paint.Style.STROKE
-        strokeJoin = Paint.Join.ROUND
-        strokeCap = Paint.Cap.ROUND
-        pathEffect = CornerPathEffect(DEFAULT_CORNER_STROKE_ROUND)
-        isAntiAlias = true
+    private lateinit var backgroundPaint: Paint
+    private lateinit var cornerPaint: Paint
+
+    fun build() {
+        backgroundPaint = Paint().apply {
+            color = backgroungColor
+            setAlpha(backgrounAlpha)
+        }
+        cornerPaint = Paint().apply {
+            color = cornerColor
+            strokeWidth = cornerStrokeWidth
+            isDither = false
+            style = Paint.Style.STROKE
+            strokeJoin = Paint.Join.ROUND
+            strokeCap = Paint.Cap.ROUND
+            pathEffect = CornerPathEffect(cornerStrokeRound)
+            isAntiAlias = true
+        }
     }
 
     override fun collapse() {
@@ -61,7 +78,7 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
                     invalidate()
                 }
             }
-            duration = DEFAULT_DURATION_COLLAPSE
+            duration = durationCollapse
             interpolator = DecelerateInterpolator()
             addListener(object : Animator.AnimatorListener {
                 override fun onAnimationRepeat(animation: Animator?) {}
@@ -93,17 +110,17 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 }
             }
             interpolator = DecelerateInterpolator()
-            duration = DEFAULT_DURATION_EXPAND
+            duration = durationExpand
             start()
         }
     }
 
     override fun onLayout(changed: Boolean, left: Int, top: Int, right: Int, bottom: Int) {
         super.onLayout(changed, left, top, right, bottom)
-        val h = height * 0.4F
-        val w = width * 0.8F
+        val h = height * dimenPercentOfHeight
+        val w = width * dimenPercentOfWidth
         dimens = min(h, w)
-        cornerLen = dimens * 0.2F
+        cornerLen = dimens * cornerLenPercentOfDimen
         maxDist = dimens / 2 - cornerLen
         heightPadding = (height - dimens) / 2
         widthPadding = (width - dimens) / 2
@@ -113,8 +130,8 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
         super.onDraw(canvas)
 
         canvas?.apply {
-            var wP = widthPadding + dist
-            var hP = heightPadding + dist
+            val wP = widthPadding + dist
+            val hP = heightPadding + dist
 
             clipPath(calcBackgroundPath(wP, hP), Region.Op.DIFFERENCE)
 

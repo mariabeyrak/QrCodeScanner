@@ -29,7 +29,9 @@ class MainActivity : AppCompatActivity() {
                 hasPerm = true
                 tryToStart()
             }
-            setShooter(RectShooter(context))
+            setShooter(RectShooter(context).apply {
+                build()
+            })
             callback = object : QrScannerTextListener {
                 override fun onText(raw: String) {
                     Log.d("mytg", raw)

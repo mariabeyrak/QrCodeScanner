@@ -1209,6 +1209,7 @@ public class CameraSource {
                 // the camera to add pending frame(s) while we are running detection on the current
                 // frame.
 
+
                 try {
                     mDetector.receiveFrame(outputFrame);
                 } catch (Throwable t) {

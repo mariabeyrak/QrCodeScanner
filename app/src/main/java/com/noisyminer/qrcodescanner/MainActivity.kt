@@ -1,16 +1,15 @@
 package com.noisyminer.qrcodescanner
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.content.pm.PackageManager
-import android.content.res.Resources
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
-import androidx.annotation.RequiresPermission
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import com.noisyminer.qrscanner.shooter.RoundedRectShooter
 import com.noisyminer.qrscanner.QrScannerTextListener
+import com.noisyminer.qrscanner.shooter.RectShooter
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -30,6 +29,9 @@ class MainActivity : AppCompatActivity() {
                 hasPerm = true
                 tryToStart()
             }
+            setShooter(RectShooter(context).apply {
+                build()
+            })
             callback = object : QrScannerTextListener {
                 override fun onText(raw: String) {
                     Log.d("mytg", raw)
@@ -54,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), 101)
         } else {
-            if (scanner.cameraSource == null) scanner.createCameraSource(applicationContext)
+            if (!scanner.hasCameraSource()) scanner.createCameraSource(applicationContext)
             scanner.startCameraSource()
         }
     }

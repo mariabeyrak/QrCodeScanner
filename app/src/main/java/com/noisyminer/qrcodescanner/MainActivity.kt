@@ -30,6 +30,7 @@ class MainActivity : AppCompatActivity() {
                 tryToStart()
             }
             setShooter(RectShooter(context).apply {
+                cornerStrokeRound = 0F
                 build()
             })
             callback = object : QrScannerTextListener {

@@ -61,9 +61,11 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
             strokeWidth = cornerStrokeWidth
             isDither = false
             style = Paint.Style.STROKE
-            strokeJoin = Paint.Join.ROUND
-            strokeCap = Paint.Cap.ROUND
-            pathEffect = CornerPathEffect(cornerStrokeRound)
+            if (cornerStrokeRound > 0) {
+                strokeJoin = Paint.Join.ROUND
+                strokeCap = Paint.Cap.ROUND
+                pathEffect = CornerPathEffect(cornerStrokeRound)
+            }
             isAntiAlias = true
         }
     }

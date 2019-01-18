@@ -12,8 +12,7 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
 
     companion object {
 
-        const val DEFAULT_ALPHA = 0.55F
-        const val DEFAULT_BACKGROUND_COLOR = Color.BLACK
+        var DEFAULT_BACKGROUND_COLOR = Color.parseColor("#55000000")
 
         const val DEFAULT_CORNER_STROKE_WIDTH = 25F
         const val DEFAULT_CORNER_STROKE_ROUND = 10F
@@ -37,7 +36,6 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
     private var bounds = RectF()
     private var collapsed = false
 
-    var backgrounAlpha = DEFAULT_ALPHA
     var backgroungColor = DEFAULT_BACKGROUND_COLOR
     var cornerStrokeWidth = DEFAULT_CORNER_STROKE_WIDTH
     var cornerStrokeRound = DEFAULT_CORNER_STROKE_ROUND
@@ -54,7 +52,6 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
     fun build() {
         backgroundPaint = Paint().apply {
             color = backgroungColor
-            setAlpha(backgrounAlpha)
         }
         cornerPaint = Paint().apply {
             color = cornerColor

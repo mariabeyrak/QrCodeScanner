@@ -12,7 +12,7 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
 
     companion object {
 
-        var DEFAULT_BACKGROUND_COLOR = Color.parseColor("#55000000")
+        var DEFAULT_BACKGROUND_COLOR = Color.parseColor("#54000000")
 
         const val DEFAULT_CORNER_STROKE_WIDTH = 25F
         const val DEFAULT_CORNER_STROKE_ROUND = 10F

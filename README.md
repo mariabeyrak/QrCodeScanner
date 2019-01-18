@@ -19,10 +19,12 @@ allprojects {
 
 ```groovy
 dependencies {
+    ...
     // Scanner (view)
-    implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrscanner:1.1.0"
+    implementation 'com.github.NikitaGordia.QrCodeScanner:qrscanner:1.2.4'
     
     // Bitmap generator
-    implementation "org.bitbucket.NikitaGordiaNoisy.qrcodescanner:qrgenerator:1.1.0"
+    implementation 'com.github.NikitaGordia.QrCodeScanner:qrgenerator:1.2.4'
+    ...
 }
 ```

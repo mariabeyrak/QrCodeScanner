@@ -10,7 +10,6 @@ allprojects {
     ...
     maven {
         url "https://jitpack.io"
-        credentials { username 'jp_7r2folubajc8v60rj90nrhsc83' }
     }
     ...
 ```

@@ -458,47 +458,6 @@ public class CameraSource {
     }
 
     /**
-     * Returns the selected camera; one of {@link #CAMERA_FACING_BACK} or
-     * {@link #CAMERA_FACING_FRONT}.
-     */
-    public int getCameraFacing() {
-        return mFacing;
-    }
-
-    public int doZoom(float scale) {
-        synchronized (mCameraLock) {
-            if (mCamera == null) {
-                return 0;
-            }
-            int currentZoom = 0;
-            int maxZoom;
-            Camera.Parameters parameters = mCamera.getParameters();
-            if (!parameters.isZoomSupported()) {
-                Log.w(TAG, "Zoom is not supported on this device");
-                return currentZoom;
-            }
-            maxZoom = parameters.getMaxZoom();
-
-            currentZoom = parameters.getZoom() + 1;
-            float newZoom;
-            if (scale > 1) {
-                newZoom = currentZoom + scale * (maxZoom / 10);
-            } else {
-                newZoom = currentZoom * scale;
-            }
-            currentZoom = Math.round(newZoom) - 1;
-            if (currentZoom < 0) {
-                currentZoom = 0;
-            } else if (currentZoom > maxZoom) {
-                currentZoom = maxZoom;
-            }
-            parameters.setZoom(currentZoom);
-            mCamera.setParameters(parameters);
-            return currentZoom;
-        }
-    }
-
-    /**
      * Initiates taking a picture, which happens asynchronously.  The camera source should have been
      * activated previously with {@link #start()} or {@link #start(SurfaceHolder)}.  The camera
      * preview is suspended while the picture is being taken, but will resume once picture taking is

@@ -38,6 +38,7 @@ import androidx.annotation.StringDef;
 import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 import java.lang.Thread.State;
@@ -432,6 +433,20 @@ public class CameraSource {
                 mCamera.release();
                 mCamera = null;
             }
+        }
+    }
+
+    public void pushBytes(byte[] data, BarcodeDetector barcodeDetector) {
+        Frame outputFrame = new Frame.Builder()
+                .setImageData(ByteBuffer.wrap(data), mPreviewSize.getWidth(),
+                        mPreviewSize.getHeight(), ImageFormat.NV21)
+                .setRotation(mRotation)
+                .build();
+
+        try {
+            barcodeDetector.receiveFrame(outputFrame);
+        } catch (Throwable t) {
+            Log.e(TAG, "Exception thrown from receiver.", t);
         }
     }
 

@@ -27,6 +27,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     private var cameraSource: CameraSource? = null
 
     private val preview = CameraSourcePreview(context, attrSet)
+    lateinit var barcodeDetector : BarcodeDetector
 
     private var processing = false
     private var lastText = ""
@@ -42,7 +43,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     @RequiresPermission(Manifest.permission.CAMERA)
     fun createCameraSource(applicationContext: Context) {
 
-        val barcodeDetector = BarcodeDetector.Builder(context)
+        barcodeDetector = BarcodeDetector.Builder(context)
                 .setBarcodeFormats(Barcode.QR_CODE)
                 .build()
 
@@ -114,6 +115,10 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         } ?: run {
             callback()
         }
+    }
+
+    fun pushBytes(data: ByteArray) {
+        cameraSource?.pushBytes(data, barcodeDetector)
     }
 
     fun processed() {

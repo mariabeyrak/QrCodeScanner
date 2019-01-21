@@ -19,6 +19,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -436,10 +437,9 @@ public class CameraSource {
         }
     }
 
-    public void pushBytes(byte[] data, BarcodeDetector barcodeDetector) {
+    public void pushBytes(Bitmap bitmap, BarcodeDetector barcodeDetector) {
         Frame outputFrame = new Frame.Builder()
-                .setImageData(ByteBuffer.wrap(data), mPreviewSize.getWidth(),
-                        mPreviewSize.getHeight(), ImageFormat.NV21)
+                .setBitmap(bitmap)
                 .setRotation(mRotation)
                 .build();
 

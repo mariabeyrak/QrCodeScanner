@@ -3,6 +3,7 @@ package com.noisyminer.qrscanner
 import android.Manifest
 import android.content.Context
 import android.content.res.Resources
+import android.graphics.Bitmap
 import android.util.AttributeSet
 import android.hardware.Camera
 import android.os.Handler
@@ -117,8 +118,8 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         }
     }
 
-    fun pushBytes(data: ByteArray) {
-        cameraSource?.pushBytes(data, barcodeDetector)
+    fun pushBitmap(bitmap: Bitmap) {
+        cameraSource?.pushBytes(bitmap, barcodeDetector)
     }
 
     fun processed() {

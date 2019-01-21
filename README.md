@@ -1,6 +1,10 @@
 ## QrCodeScanner
 
-###How to import?
+### What's new?
+
+1.2.7 - Added method pushBitmap().
+
+### How to import?
 
 1. Root level
 
@@ -20,10 +24,10 @@ allprojects {
 dependencies {
     ...
     // Scanner (view)
-    implementation 'com.github.NikitaGordia.QrCodeScanner:qrscanner:1.2.4'
+    implementation 'com.github.NikitaGordia.QrCodeScanner:qrscanner:1.2.7'
     
     // Bitmap generator
-    implementation 'com.github.NikitaGordia.QrCodeScanner:qrgenerator:1.2.4'
+    implementation 'com.github.NikitaGordia.QrCodeScanner:qrgenerator:1.2.7'
     ...
 }
 ```

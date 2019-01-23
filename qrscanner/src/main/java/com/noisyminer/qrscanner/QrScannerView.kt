@@ -134,6 +134,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     }
 
     fun destroy() {
+        preview.stop()
         preview.release()
         callback = null
     }

@@ -105,6 +105,8 @@ public class CameraSourcePreview extends SurfaceView {
                 Log.e(TAG,"Do not have permission to start the camera", se);
             } catch (IOException e) {
                 Log.e(TAG, "Could not start camera source.", e);
+            } catch (Exception e) {
+                Log.e(TAG, "Exception on Surface created $e");
             }
         }
 

@@ -119,7 +119,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         }
     }
 
-    fun pushBitmap(bitmap: Bitmap): List<Barcode> = cameraSource?.pushBytes(bitmap, barcodeDetector) ?: listOf()
+    fun pushBitmap(bitmap: Bitmap): List<String> = cameraSource?.pushBytes(bitmap, barcodeDetector) ?: listOf()
 
     fun processed() {
         setOnCollapseCallback {

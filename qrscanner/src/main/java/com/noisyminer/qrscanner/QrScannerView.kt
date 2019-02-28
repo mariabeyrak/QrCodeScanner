@@ -18,6 +18,7 @@ import com.noisyminer.qrscanner.camera.CameraSource
 import com.noisyminer.qrscanner.camera.CameraSourcePreview
 import com.noisyminer.qrscanner.shooter.ShooterView
 import java.io.IOException
+import java.util.*
 
 
 class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: AttributeSet? = null, defStyleAttr: Int = 0) : FrameLayout(context, attrSet, defStyleAttr) {
@@ -118,9 +119,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
         }
     }
 
-    fun pushBitmap(bitmap: Bitmap) {
-        cameraSource?.pushBytes(bitmap, barcodeDetector)
-    }
+    fun pushBitmap(bitmap: Bitmap): List<Barcode> = cameraSource?.pushBytes(bitmap, barcodeDetector) ?: listOf()
 
     fun processed() {
         setOnCollapseCallback {

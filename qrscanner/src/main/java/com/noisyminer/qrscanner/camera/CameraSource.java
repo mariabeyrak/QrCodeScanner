@@ -27,7 +27,7 @@ import android.hardware.Camera.CameraInfo;
 import android.os.Build;
 import android.os.SystemClock;
 import android.util.Log;
-import android.util.Pair;
+import android.util.SparseArray;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -39,6 +39,7 @@ import androidx.annotation.StringDef;
 import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.Frame;
+import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
@@ -437,17 +438,26 @@ public class CameraSource {
         }
     }
 
-    public void pushBytes(Bitmap bitmap, BarcodeDetector barcodeDetector) {
+    public List<Barcode> pushBytes(Bitmap bitmap, BarcodeDetector barcodeDetector) {
         Frame outputFrame = new Frame.Builder()
                 .setBitmap(bitmap)
                 .setRotation(mRotation)
                 .build();
 
         try {
-            barcodeDetector.receiveFrame(outputFrame);
+            return asList(barcodeDetector.detect(outputFrame));
         } catch (Throwable t) {
             Log.e(TAG, "Exception thrown from receiver.", t);
+            return null;
         }
+    }
+
+    private static <C> List<C> asList(SparseArray<C> sparseArray) {
+        if (sparseArray == null) return null;
+        List<C> arrayList = new ArrayList<C>(sparseArray.size());
+        for (int i = 0; i < sparseArray.size(); i++)
+            arrayList.add(sparseArray.valueAt(i));
+        return arrayList;
     }
 
     /**

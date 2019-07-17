@@ -96,6 +96,7 @@ class QrScannerLayout @JvmOverloads constructor(context: Context, attrSet: Attri
     }
 
     private fun onProcess(raw: String) {
+
         if (raw == lastText || processing) return
         processing = true
         lastText = raw

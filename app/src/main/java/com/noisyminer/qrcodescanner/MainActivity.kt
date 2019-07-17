@@ -2,6 +2,7 @@ package com.noisyminer.qrcodescanner
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.graphics.Color
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
@@ -31,6 +32,8 @@ class MainActivity : AppCompatActivity() {
             }
             setShooter(RectShooter(context).apply {
                 cornerStrokeRound = 0F
+                cornerColor = Color.TRANSPARENT
+                frameStrokeColor = Color.RED
                 build()
             })
             callback = object : QrScannerTextListener {

@@ -13,6 +13,7 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
     companion object {
 
         var DEFAULT_BACKGROUND_COLOR = Color.parseColor("#54000000")
+        var DEFAULT_FRAME_STROKE_COLOR = Color.parseColor("#00000000")
 
         const val DEFAULT_CORNER_STROKE_WIDTH = 25F
         const val DEFAULT_CORNER_STROKE_ROUND = 10F
@@ -45,9 +46,12 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
     var dimenPercentOfHeight = DEFAULT_DIMEN_PERCENT_OF_HEIGHT
     var cornerLenPercentOfDimen = DEFAULT_CORNER_LEN_PERCENT_OF_DIMEN
     var cornerColor = DEFAULT_CORNER_COLOR
+    var frameStrokeColor = DEFAULT_FRAME_STROKE_COLOR
+    var frameStrokeWidth = DEFAULT_CORNER_STROKE_WIDTH
 
     private lateinit var backgroundPaint: Paint
     private lateinit var cornerPaint: Paint
+    private lateinit var framePaint: Paint
 
     fun build() {
         backgroundPaint = Paint().apply {
@@ -64,6 +68,12 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
                 pathEffect = CornerPathEffect(cornerStrokeRound)
             }
             isAntiAlias = true
+        }
+        framePaint = Paint().apply {
+            color = frameStrokeColor
+            strokeWidth = cornerStrokeWidth
+            isDither = false
+            style = Paint.Style.STROKE
         }
     }
 
@@ -135,6 +145,7 @@ class RectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSe
             clipPath(calcBackgroundPath(wP, hP), Region.Op.DIFFERENCE)
 
             drawRect(0F, 0F, width.toFloat(), height.toFloat(), backgroundPaint)
+            drawRect(wP, hP, width - wP, height - hP, framePaint)
             drawPath(calcCorner(wP, hP, 0F), cornerPaint)
             drawPath(calcCorner(width - wP, hP, 90F), cornerPaint)
             drawPath(calcCorner(width - wP, height - hP, 180F), cornerPaint)

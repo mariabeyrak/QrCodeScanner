@@ -8,9 +8,15 @@ import android.util.AttributeSet
 import android.view.animation.LinearInterpolator
 import kotlin.math.min
 
-class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : ShooterView(context, attrs, defStyle) {
+class RoundedRectShooter @JvmOverloads constructor(
+    context: Context,
+    attrs: AttributeSet? = null,
+    defStyle: Int = 0
+) : ShooterView(context, attrs, defStyle) {
 
     companion object {
+
+        var DEFAULT_BACKGROUND_COLOR = Color.WHITE
 
         const val RECT_ROUND = 50F
         const val ANIM_DURATION_OUTER = 50L
@@ -24,10 +30,17 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
     private var widthPadding = 0F
     private var outState = true
 
-    private val paint: Paint = Paint().apply {
-        color = Color.WHITE
-        setAlpha(DEFAULT_ALPHA)
-        isAntiAlias = true
+    var backgroundPaintColor = DEFAULT_BACKGROUND_COLOR
+    var backgroundAlpha = DEFAULT_ALPHA
+
+    private lateinit var paint: Paint
+
+    fun build() {
+        paint = Paint().apply {
+            color = backgroundPaintColor
+            setAlpha(backgroundAlpha)
+            isAntiAlias = true
+        }
     }
 
     override fun collapse() {
@@ -99,7 +112,8 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
 
                 override fun onAnimationEnd(animation: Animator?) {
                     outState = true
-                    animator = ValueAnimator.ofFloat(dimens / 2,
+                    animator = ValueAnimator.ofFloat(
+                        dimens / 2,
                         RECT_ROUND
                     ).apply {
                         addUpdateListener {
@@ -142,13 +156,41 @@ class RoundedRectShooter @JvmOverloads constructor(context: Context, attrs: Attr
 
         if (outState) {
             moveTo(widthPadding, heightPadding + radius)
-            arcTo(RectF(widthPadding, heightPadding, widthPadding + radius * 2, heightPadding + radius * 2), 180F, 90F)
+            arcTo(
+                RectF(
+                    widthPadding,
+                    heightPadding,
+                    widthPadding + radius * 2,
+                    heightPadding + radius * 2
+                ), 180F, 90F
+            )
             lineTo(width - widthPadding - radius, heightPadding)
-            arcTo(RectF(width - widthPadding - radius * 2, heightPadding, width - widthPadding, heightPadding + radius * 2), 270F, 90F)
+            arcTo(
+                RectF(
+                    width - widthPadding - radius * 2,
+                    heightPadding,
+                    width - widthPadding,
+                    heightPadding + radius * 2
+                ), 270F, 90F
+            )
             lineTo(width - widthPadding, height - heightPadding - radius)
-            arcTo(RectF(width - widthPadding - radius * 2, height - heightPadding - radius * 2, width - widthPadding, height - heightPadding), 0F, 90F)
+            arcTo(
+                RectF(
+                    width - widthPadding - radius * 2,
+                    height - heightPadding - radius * 2,
+                    width - widthPadding,
+                    height - heightPadding
+                ), 0F, 90F
+            )
             lineTo(widthPadding + radius, height - heightPadding)
-            arcTo(RectF(widthPadding, height - heightPadding - radius * 2, widthPadding + radius * 2, height - heightPadding), 90F, 90F)
+            arcTo(
+                RectF(
+                    widthPadding,
+                    height - heightPadding - radius * 2,
+                    widthPadding + radius * 2,
+                    height - heightPadding
+                ), 90F, 90F
+            )
             lineTo(widthPadding, heightPadding + radius)
         } else {
             addCircle(width / 2F, height / 2F, radius, Path.Direction.CW)
